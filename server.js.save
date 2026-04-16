@@ -1,0 +1,55 @@
+
+import express from 'express';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import { createProduct } from './services/shopify.js';
+
+dotenv.config();
+
+const app = express();
+app.use(cors());
+app.use(express.json({ limit: '15mb' }));
+
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok', service: 'neutria-backend' });
+});
+
+app.post('/api/list', async (req, res) => {
+  try {
+    const {
+      title,
+      description,
+      price,
+      category,
+      tags,
+      imageBase64,
+      imageMimeType
+    } = req.body;
+
+    if (!title || price === undefined) {
+      return res.status(400).json({ error: 'title and price required' });
+    }
+
+    const product = await createProduct({
+      title,
+      description,
+      price,
+      category,
+      tags,
+      imageBase64,
+      imageMimeType
+    });
+
+    res.json({ success: true, product });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'failed to create product' });
+  }
+});
+
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+  console.log(`Running on http://localhost:${PORT}`);
+});
+
