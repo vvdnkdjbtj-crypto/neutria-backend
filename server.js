@@ -1,7 +1,6 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import { createProduct } from './services/shopify.js';
 
 dotenv.config();
 
@@ -39,40 +38,17 @@ app.get('/api/list', (req, res) => {
 
 app.post('/api/list', async (req, res) => {
   try {
-    const {
-      title,
-      description,
-      price,
-      category,
-      tags,
-      imageBase64,
-      imageMimeType
-    } = req.body;
-
-    if (!title || price === undefined || price === null) {
-      return res.status(400).json({
-        error: 'title and price are required'
-      });
-    }
-
-    const product = await createProduct({
-      title,
-      description,
-      price,
-      category,
-      tags,
-      imageBase64,
-      imageMimeType
-    });
+    console.log('Incoming data:', req.body);
 
     return res.status(200).json({
       success: true,
-      product
+      message: 'API working (Shopify temporarily disabled)',
+      data: req.body
     });
   } catch (error) {
     console.error('POST /api/list failed:', error);
     return res.status(500).json({
-      error: error.message || 'Failed to create product'
+      error: error.message || 'Failed'
     });
   }
 });
