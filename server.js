@@ -35,7 +35,7 @@ app.post('/api/list', async (req, res) => {
         },
         body: JSON.stringify({
           product: {
-            title: title,
+            title: `Neutria Verified: ${title}`,
             variants: [{ price: price }],
             images: image ? [{ src: image }] : [],
           },
