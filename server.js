@@ -1,38 +1,59 @@
 import express from 'express';
 import cors from 'cors';
+import fetch from 'node-fetch';
 import dotenv from 'dotenv';
 
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 8080;
 
 app.use(cors());
 app.use(express.json({ limit: '15mb' }));
 
+const SHOP = process.env.SHOPIFY_STORE_NAME;
+const TOKEN = process.env.SHOPIFY_ACCESS_TOKEN;
+
 app.get('/', (req, res) => {
-  res.status(200).send('Neutria backend is live');
+  res.send('Neutria backend is live');
 });
 
 app.get('/health', (req, res) => {
-  res.status(200).json({ status: 'ok', service: 'neutria-backend' });
+  res.json({ status: 'ok' });
 });
 
-app.get('/api/list', (req, res) => {
-  res.status(200).json({ status: 'ok', message: 'Use POST for this endpoint' });
+app.post('/api/list', async (req, res) => {
+  try {
+    const { title, price, image } = req.body;
+
+    const response = await fetch(
+      `https://${SHOP}.myshopify.com/admin/api/2023-10/products.json`,
+      {
+        method: 'POST',
+        headers: {
+          'X-Shopify-Access-Token': TOKEN,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          product: {
+            title: title,
+            variants: [{ price: price }],
+            images: image ? [{ src: image }] : [],
+          },
+        }),
+      }
+    );
+
+    const data = await response.json();
+
+    res.json(data);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to create product' });
+  }
 });
 
-app.post('/api/list', (req, res) => {
-  console.log('POST /api/list hit');
-  console.log(req.body);
-
-  res.status(200).json({
-    success: true,
-    message: 'Backend is working. Shopify temporarily disabled.',
-    received: req.body
-  });
-});
+const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Running on port ${PORT}`);
+  console.log(`Running on http://0.0.0.0:${PORT}`);
 });
